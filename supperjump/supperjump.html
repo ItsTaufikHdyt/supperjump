@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        #canvas {
+            border: 1px solid;
+            width: 850px;
+            height: 500px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+
+        var char = new Image();
+        char.src ="image/char1.png";
+
+        var char2 = new Image();
+        char2.src = "image/char2.png";
+
+        var lose = new Image();
+        lose.src = "image/lose.png";
+
+        var bg = new Image();
+        bg.src = "image/bg.jpg";
+
+        var jebakan1 = new Image();
+        jebakan1.src = "image/jebakan.png";
+
+        var jebakan2 = new Image();
+        jebakan2.src = "image/jebakan2.png";
+
+        var bgm = new Audio();
+        bgm.src = "audio/nyan_cat_theme.mp3";
+
+        var coin = new Audio();
+        coin.src = "audio/coin.ogg";
+
+        function mulaiKanvas(){
+        var canvas = document.getElementById('canvas');
+        var ctx =canvas.getContext('2d');
+
+        canvas.width = canvas.scrollWidth;
+        canvas.height = canvas.scrollHeight;
+
+       var cW = canvas.width;
+       var cH = canvas.height;
+
+        // function splash(){
+
+        // }
+        utama();
+
+        function utama(){
+            var gantiGambar = false;
+            bgm.play();
+            function BG(){
+                this.x=0,this.y=0;
+                this.render=function(){
+                    ctx.drawImage(bg,this.x--,this.y);
+                 if (this.x == -1699) {
+                    this.x = 0;
+                    }
+                }
+            }
+
+            var back = new BG();
+
+            function Karakter(){
+                this.x=100,this.y=200,this.w=115,this.h=64,this.i=0;
+                this.render=function(){
+                    if(gantiGambar){
+                      ctx.drawImage(char2, this.x, this.y += 5);
+                      this.i ++;
+                      if(this.i==5){
+                          gantiGambar=false;
+                          this.i=0;
+                      }
+                    }else{
+                        ctx.drawImage(char, this.x, this.y += 5);
+                    }
+
+                }
+            }
+            var karakter = new Karakter();
+            var jebakan = [];
+            tambahJebakan();
+            function tambahJebakan(){
+                var x=800, y=0, w=92, h=300;
+                var acak = Math.floor(Math.random()*250);
+                jebakan.push({"x":x,"y":y-acak,"w":w,"h":h});
+            }
+
+            function selesai(){
+                bgm.pause();
+                clearInterval(interval);
+                ctx.clearRect(0,0,cW,cH);
+                back.render();
+                renderJebakan();
+                ctx.drawImage(lose,karakter.x,karakter.y);
+
+                ctx.font="Bold 60px arial";
+                ctx.fillText("SELESAI", 320,150);
+
+                ctx.font = "Bold 60px arial";
+                ctx.fillText("Skor Anda :" +skor, 320, 250);
+            }
+
+            var skor=0, tambahNilai=true;
+            function tambahSkor(){
+                skor++;
+            }
+
+            function kena(){
+                for (var i = 0; i < jebakan.length; i++) {
+                    var t=jebakan[i];
+                    if((karakter.x+karakter.w>t.x && karakter.y<t.y+t.h && karakter.x<t.x+t.w)||
+                    (karakter.x+karakter.w>t.x && karakter.y+karakter.h>t.y+t.h+200 && karakter.x<t.x+t.w)){
+                        selesai();
+                    }else if(t.x+t.w<karakter.x){
+                        if(tambahNilai){
+                            coin.play();
+                            tambahSkor();
+                            tambahNilai=false;
+                        }
+                    }
+                }
+                if(karakter.y<=0){selesai();}
+                if(karakter.y+karakter.h>cH) { selesai(); }
+            }
+
+            var hitung=0;
+            function renderJebakan(){
+                for (var i = 0; i < jebakan.length; i++) {
+                    var t=jebakan[i];
+                    ctx.drawImage(jebakan1,t.x--,t.y);
+                    ctx.drawImage(jebakan2, t.x--,t.y+t.h+220);
+                    if(t.x+t.w<0){
+                        jebakan.splice(i,1);
+                        tambahNilai=true;
+                    }
+                }
+                hitung++;
+                if(hitung == 150){
+                    tambahJebakan();
+                    hitung=0;
+                }
+            }
+
+            function animasi() {
+                ctx.save();
+                ctx.clearRect(0, 0, cW, cH);
+                back.render();
+                karakter.render();
+                renderJebakan();
+                kena();
+                ctx.font = "Normal 30px Arial";
+                ctx.fillText("Skor : " + skor, 20, 60);
+                ctx.restore();
+            }
+            var interval = setInterval(animasi, 30);
+
+            ctx.canvas.addEventListener('click', function (event) {
+               gantiGambar = true;
+               karakter.y-=70;
+            });
+
+         }//end fungsi utama
+        }
+        window.addEventListener('load',function(event){
+            mulaiKanvas();
+
+        });
+    </script>
+</body>
+</html>
